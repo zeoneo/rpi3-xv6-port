@@ -25,6 +25,10 @@ CFLAGS =	-march=armv8-a+crc \
 			
 LDFLAGS = -T $(SOURCE)linker.ld -ffreestanding -O2 -nostdlib
 
+SOURCES = $(wildcard $(SOURCE)*.s) $(wildcard $(SOURCE)*.c)
+OBJECTS = $(filter %.o, \
+	$(patsubst $(SOURCE)%.s, $(BUILD)%.o,$(SOURCES)) \
+	$(patsubst $(SOURCE)%.c, $(BUILD)%.o,$(SOURCES)))
 
 # The name of the output file to generate.
 TARGET = kernel.img
@@ -32,7 +36,7 @@ TARGET = kernel.img
 .PHONY: all clean run
 
 # Rule to make everything.
-all: $(TARGET)
+all: $(BUILD)$(TARGET)
 
 # Rule to remake everything. Does not include clean.
 rebuild: clean all 
@@ -41,17 +45,17 @@ rebuild: clean all
 run:
 	qemu-system-arm -m 256 -M raspi2 -serial stdio -kernel $(BUILD)kernel.elf
 
-$(TARGET): kernel.elf
-	arm-none-eabi-objcopy $(BUILD)kernel.elf -O binary $(BUILD)kernel.img
+$(BUILD)%.o : $(SOURCE)%.s
+	$(CC) $(CFLAGS) -c $< -o $@
 
-kernel.elf: boot.o kernel.o
-	$(LD)   $(LDFLAGS) -o $(BUILD)kernel.elf $(BUILD)boot.o $(BUILD)kernel.o
+$(BUILD)%.o : $(SOURCE)%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-boot.o: $(SOURCE)boot.s
-	$(CC) $(CFLAGS) -c $(SOURCE)boot.s -o $(BUILD)boot.o
+$(BUILD)$(TARGET): $(BUILD)kernel.elf
+	arm-none-eabi-objcopy $< -O binary $@
 
-kernel.o: $(SOURCE)boot.s
-	$(CC) $(CFLAGS) -c $(SOURCE)kernel.c -o $(BUILD)kernel.o
+$(BUILD)kernel.elf: $(OBJECTS)
+	$(LD) $(LDFLAGS) -o $@ $^
 
 # Rule to clean files.
 clean : 
