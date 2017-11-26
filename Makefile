@@ -25,10 +25,8 @@ CFLAGS =	-march=armv8-a+crc \
 			
 LDFLAGS = -T $(SOURCE)linker.ld -ffreestanding -O2 -nostdlib
 
-SOURCES = $(wildcard $(SOURCE)*.s) $(wildcard $(SOURCE)*.c)
-OBJECTS = $(filter %.o, \
-	$(patsubst $(SOURCE)%.s, $(BUILD)%.o,$(SOURCES)) \
-	$(patsubst $(SOURCE)%.c, $(BUILD)%.o,$(SOURCES)))
+SOURCES := $(wildcard $(SOURCE)*.s) $(wildcard $(SOURCE)*.c)
+OBJECTS := $(patsubst $(SOURCE)%,$(BUILD)%.o,$(basename $(SOURCES)))
 
 # The name of the output file to generate.
 TARGET = kernel.img
