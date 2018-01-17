@@ -9,8 +9,8 @@
 #include "mailbox-interface.h"
 #include "rpi-systimer.h"
 
-#define SCREEN_WIDTH    640
-#define SCREEN_HEIGHT   480
+#define SCREEN_WIDTH    320
+#define SCREEN_HEIGHT   320
 #define SCREEN_DEPTH    16      /* 16 or 32-bit */
 
 #define COLOUR_DELTA    0.05    /* Float from 0 to 1 incremented by this amount */

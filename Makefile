@@ -43,7 +43,7 @@ all: $(BUILD)$(TARGET)
 rebuild: clean all 
 
 #Rule to invoke qemu
-run: all
+run: clean all
 	qemu-system-arm -m 256 -M raspi2 -serial stdio -kernel $(BUILD)kernel.elf
 
 $(BUILD)%.o : $(SOURCE)%.s

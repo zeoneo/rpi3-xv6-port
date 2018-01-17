@@ -10,16 +10,17 @@
 #include "mailbox-interface.h"
 #include "rpi-systimer.h"
 #include "graphics.h"
-
+extern char * font;
 void show_output() {
     int width = 0, height = 0, bpp = 0;
-    int x, y, pitch = 0;
+    int x, y,z, pitch = 0;
     colour_t current_colour;
     volatile unsigned char* fb = NULL;
     int pixel_offset;
     int r, g, b, a;
     float cd = COLOUR_DELTA;
     unsigned int frame_count = 0;
+    unsigned char aChar[16] = {0x00, 0x00, 0x00, 0x10, 0x28, 0x28, 0x28, 0x44, 0x44, 0x7C, 0xC6, 0x82, 0x00, 0x00, 0x00, 0x00};
 
     /* Write 1 to the LED init nibble in the Function Select GPIO
        peripheral register to enable LED pin as an output */
@@ -142,52 +143,23 @@ void show_output() {
     while( 1 )
     {
         current_colour.r = 0;
-
+        for(z = 0; z < height/8; z++) {
         /* Produce a colour spread across the screen */
-        for( y = 0; y < height; y++ )
-        {
-            current_colour.r += ( 1.0 / height );
-            current_colour.b = 0;
-
-            for( x = 0; x < width; x++ )
+            for( y = z; y < (z + 16); y++ ) // pixel row
             {
-                pixel_offset = ( x * ( bpp >> 3 ) ) + ( y * pitch );
+                current_colour.r += ( 1.0 / height );
+                current_colour.b = 0;
 
-                r = (int)( current_colour.r * 0xFF ) & 0xFF;
-                g = (int)( current_colour.g * 0xFF ) & 0xFF;
-                b = (int)( current_colour.b * 0xFF ) & 0xFF;
-                a = (int)( current_colour.b * 0xFF ) & 0xFF;
+                for( x = 0; x < 8; x++ ) //pixel
+                {
+                    pixel_offset = ( x * ( bpp >> 3 ) ) + ( y * pitch );
 
-                if( bpp == 32 )
-                {
-                    /* Four bytes to write */
-                    fb[ pixel_offset++ ] = r;
-                    fb[ pixel_offset++ ] = g;
-                    fb[ pixel_offset++ ] = b;
-                    fb[ pixel_offset++ ] = a;
+                    *(unsigned short*)&fb[pixel_offset] = (aChar[y%16] & ( 1 << (7 - x))) ? 0xffffff : 0x000000;
+                    // *(unsigned short*)&fb[pixel_offset] = 0xffffff;
                 }
-                else if( bpp == 24 )
-                {
-                    /* Three bytes to write */
-                    fb[ pixel_offset++ ] = r;
-                    fb[ pixel_offset++ ] = g;
-                    fb[ pixel_offset++ ] = b;
-                }
-                else if( bpp == 16 )
-                {
-                    /* Two bytes to write */
-                    /* Bit pack RGB565 into the 16-bit pixel offset */
-                    *(unsigned short*)&fb[pixel_offset] = ( (r >> 3) << 11 ) | ( ( g >> 2 ) << 5 ) | ( b >> 3 );
-                }
-                else
-                {
-                    /* Palette mode. TODO: Work out a colour scheme for
-                       packing rgb into an 8-bit palette! */
-                }
-
-                current_colour.b += ( 1.0 / width );
             }
         }
+
 
         /* Scroll through the green colour */
         current_colour.g += cd;

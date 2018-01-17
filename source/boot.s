@@ -4,6 +4,7 @@
 // Make _start global.
 .globl _start
 .global _enable_interrupts
+.global font
  
 // Entry point for the kernel.
 // r15 -> should begin execution at 0x8000.
@@ -67,5 +68,9 @@ _enable_interrupts:
     mrs     r0, cpsr
     bic     r0, r0, #0x80
     msr     cpsr_c, r0
-
     mov     pc, lr
+
+.section .data
+.align 4
+font:
+	.incbin "./source/font.bin"
