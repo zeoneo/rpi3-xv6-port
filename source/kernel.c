@@ -1,6 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "graphics.h"
+
 // Memory-Mapped I/O output
 static inline void mmio_write(uint32_t reg, uint32_t data)
 {
@@ -145,11 +147,12 @@ extern "C" /* Use C linkage for kernel_main. */
     uart_init();
     uart_puts("Hello, kernel World ...! \r\n");
     uart_puts("Type I will loop that back:");
-
+    show_output();
     while (1)
     {
         c = uart_getc();
         uart_putc(c);
+        uart_putc('\n');
         c = '\0';
     }
 }

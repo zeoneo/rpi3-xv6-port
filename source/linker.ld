@@ -29,7 +29,12 @@ SECTIONS
     }
     . = ALIGN(4096); /* align to page size */
     __data_end = .;
- 
+
+    heap_low = .; /* for _sbrk */
+    . = . + 0x10000; /* 64kB of heap memory */
+    heap_top = .; /* for _sbrk */
+    . = . + 0x10000; /* 64kB of stack memory */
+
     __bss_start = .;
     .bss :
     {
@@ -39,4 +44,6 @@ SECTIONS
     . = ALIGN(4096); /* align to page size */
     __bss_end = .;
     __end = .;
+
+
 }

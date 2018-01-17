@@ -21,9 +21,12 @@ CFLAGS =	-march=armv8-a+crc \
 			-mfloat-abi=hard \
 			-ftree-vectorize \
 			-funsafe-math-optimizations \
-			-O2 -pipe -ffreestanding
+			-O2 -pipe -nostartfiles -g
 			
-LDFLAGS = -T $(SOURCE)linker.ld -ffreestanding -O2 -nostdlib
+LDFLAGS = -T $(SOURCE)linker.ld -ffreestanding -O2 -nostdlib $(CFLAGS)
+INCLUDES = -I /Users/prakashborkar/gcc-arm-none-eabi/newlib-dev/arm-none-eabi/include
+
+
 
 SOURCES := $(wildcard $(SOURCE)*.s) $(wildcard $(SOURCE)*.c)
 OBJECTS := $(patsubst $(SOURCE)%,$(BUILD)%.o,$(basename $(SOURCES)))
@@ -40,20 +43,21 @@ all: $(BUILD)$(TARGET)
 rebuild: clean all 
 
 #Rule to invoke qemu
-run:
+run: all
 	qemu-system-arm -m 256 -M raspi2 -serial stdio -kernel $(BUILD)kernel.elf
 
 $(BUILD)%.o : $(SOURCE)%.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)%.o : $(SOURCE)%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD)$(TARGET): $(BUILD)kernel.elf
 	arm-none-eabi-objcopy $< -O binary $@
 
 $(BUILD)kernel.elf: $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $^
+
 
 # Rule to clean files.
 clean : 
